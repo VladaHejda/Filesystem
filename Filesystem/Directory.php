@@ -5,7 +5,7 @@ namespace Filesystem;
 /**
  * @property-read string $name
  * @property-read string $path
- * @property-read Directory $parent
+ * @property-read Directory|null $parent
  * @property-read bool $dir
  */
 class Directory extends \Nette\Object implements Item, \Iterator, \ArrayAccess, \Countable {

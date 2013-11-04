@@ -9,9 +9,6 @@ foreach ($dir as $item){
     Assert::type('Filesystem\Item', $item);
 }
 
-return;
-
-// incomplet:
 foreach ($dir->firstDir as $item){
     Assert::type('Filesystem\Item', $item);
 }
