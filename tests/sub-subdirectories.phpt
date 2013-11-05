@@ -12,5 +12,6 @@ Assert::type('Filesystem\Directory', $dir['second folder with spaces !/subdir'])
 Assert::type('Filesystem\File', $dir->get('second folder with spaces !/data'));
 Assert::type('Filesystem\File', $dir->get('second folder with spaces !/subdir/story.txt'));
 Assert::type('Filesystem\File', $dir['second folder with spaces !']['data']);
-Assert::type('Filesystem\File', $dir['second folder with spaces !'][0]);
+Assert::type('Filesystem\File', $dir['second folder with spaces !']->data);
+Assert::type('Filesystem\Item', $dir['second folder with spaces !'][0]);
 Assert::type('Filesystem\File', $dir['second folder with spaces !']['subdir']['story.txt']);

@@ -1,5 +1,7 @@
 <?php
 
+// todo allow global cache
+
 namespace Filesystem;
 
 /**
@@ -7,6 +9,7 @@ namespace Filesystem;
  * @property-read string $path
  * @property-read Directory|null $parent
  * @property-read bool $dir
+ * @property-read DirectoryDirectories $dirs
  */
 class Directory extends \Nette\Object implements Item, \Iterator, \ArrayAccess, \Countable {
 
@@ -22,7 +25,12 @@ class Directory extends \Nette\Object implements Item, \Iterator, \ArrayAccess, 
 
 
 
-    /** @var array cached items */
+    /** @var array */
+    private $localCache;
+
+
+
+    /** @var array global cache */
     protected static $cache = array();
 
 
@@ -141,10 +149,22 @@ class Directory extends \Nette\Object implements Item, \Iterator, \ArrayAccess, 
      * Returns subdirectory.
      * @param string $directory subdirectory
      * @return Directory
+     * @throws FilesystemException
      */
     public function dir($directory){
 
         return new static("$this->root/$directory");
+    }
+
+
+
+    /**
+     * Lists only subdirectories, excludes files.
+     * @return DirectoryDirectories
+     */
+    public function getDirs(){
+
+        return new DirectoryDirectories($this->root);
     }
 
 
@@ -204,7 +224,8 @@ class Directory extends \Nette\Object implements Item, \Iterator, \ArrayAccess, 
     public function current(){
 
         $items = $this->getItems();
-        return $this->get($items[$this->pos]);
+        $item = "$this->root/".$items[$this->pos];
+        return is_dir($item) ? new static($item) : new File($item);
     }
 
 
@@ -222,16 +243,41 @@ class Directory extends \Nette\Object implements Item, \Iterator, \ArrayAccess, 
 
 
 
+    /**
+     * Filter items.
+     * @param string $item
+     * @return bool
+     */
+    protected function denyItem($item){
+
+        return FALSE;
+    }
+
+
+
+    private function filterItems($items){
+
+        foreach ($items as $i => $item){
+            if ($this->denyItem($item)) unset($items[$i]);
+        }
+        return array_values($items);
+    }
+
+
+
     private function getItems(){
 
-        if (isset(self::$cache[$this->root])) return self::$cache[$this->root];
+        if (isset($this->localCache)) return $this->localCache;
 
-        $items = array();
-        $h = opendir($this->root);
-        while ($f = readdir($h)){
-            if ($f == '.' || $f == '..') continue;
-            $items[] = $f;
+        if (!isset(self::$cache[$this->root])){
+            $items = array();
+            $h = opendir($this->root);
+            while ($f = readdir($h)){
+                if ($f == '.' || $f == '..') continue;
+                $items[] = $f;
+            }
+            self::$cache[$this->root] = $items;
         }
-        return self::$cache[$this->root] = $items;
+        return $this->localCache = $this->filterItems(self::$cache[$this->root]);
     }
 }
