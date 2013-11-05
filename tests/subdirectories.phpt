@@ -7,23 +7,23 @@ $dir = new \Filesystem\Directory(__DIR__.'/filesystem');
 
 Assert::exception(function() use($dir){
     $dir->dir('noDir');
-}, 'FileSystem\FileSystemException');
+}, 'Filesystem\FilesystemException');
 
 Assert::exception(function() use($dir){
     $dir->noDir;
-}, 'FileSystem\FileSystemException');
+}, 'Filesystem\FilesystemException');
 
 Assert::exception(function() use($dir){
     $dir['noDir'];
-}, 'FileSystem\FileSystemException');
+}, 'Filesystem\FilesystemException');
 
 Assert::exception(function() use($dir){
     $dir[5];
-}, 'FileSystem\FileSystemException');
+}, 'Filesystem\FilesystemException');
 
-Assert::type('FileSystem\Directory', $dir->dir('firstDir'));
-Assert::type('FileSystem\Directory', $dir->firstDir);
-Assert::type('FileSystem\Directory', $dir['firstDir']);
-Assert::type('FileSystem\Directory', $dir[0]);
+Assert::type('Filesystem\Directory', $dir->dir('firstDir'));
+Assert::type('Filesystem\Directory', $dir->firstDir);
+Assert::type('Filesystem\Directory', $dir['firstDir']);
+Assert::type('Filesystem\Directory', $dir[0]);
 
-Assert::type('FileSystem\Directory', $dir->dir('second folder with spaces !'));
+Assert::type('Filesystem\Directory', $dir->dir('second folder with spaces !'));
