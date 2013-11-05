@@ -14,6 +14,7 @@ foreach ($dir->files as $f){
 
 Assert::equal(1, count($dir->files));
 Assert::equal(1, count($dir->subdir->files));
+Assert::equal(2, count($dir->parent->firstDir->files));
 
 Assert::exception(function() use($dir){
     $dir->files->subdir;

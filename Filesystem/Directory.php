@@ -199,6 +199,49 @@ class Directory extends \Nette\Object implements Item, \Iterator, \ArrayAccess, 
 
 
 
+    /**
+     * Lists items matching given regex.
+     */
+    public function items($regex){
+
+        $dir = new static($this->root);
+        return $dir->setFilter(function(Item $item) use($regex){
+            return preg_match($regex, $item->getName());
+        });
+    }
+
+
+
+    /**
+     * Lists directories matching given regex.
+     * @param string $regex
+     * @return DirectoryDirectories
+     */
+    public function dirs($regex){
+
+        $dir = new DirectoryDirectories($this->root);
+        return $dir->setFilter(function(Item $item) use($regex){
+            return preg_match($regex, $item->getName());
+        });
+    }
+
+
+
+    /**
+     * Lists files matching given regex.
+     * @param string $regex
+     * @return DirectoryFiles
+     */
+    public function files($regex){
+
+        $dir = new DirectoryFiles($this->root);
+        return $dir->setFilter(function(Item $item) use($regex){
+            return preg_match($regex, $item->getName());
+        });
+    }
+
+
+
     public function getName(){
 
         return basename($this->root);
