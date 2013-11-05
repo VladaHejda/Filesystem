@@ -261,7 +261,7 @@ class Directory extends \Nette\Object implements Item, \Iterator, \ArrayAccess, 
      */
     public function dirs($regex){
 
-        return $this->dirs->setFilter(function(Item $item) use($regex){
+        return $this->getDirs()->setFilter(function(Item $item) use($regex){
             return preg_match($regex, $item->getName());
         });
     }
@@ -275,7 +275,7 @@ class Directory extends \Nette\Object implements Item, \Iterator, \ArrayAccess, 
      */
     public function files($regex){
 
-        return $this->files->setFilter(function(Item $item) use($regex){
+        return $this->getFiles()->setFilter(function(Item $item) use($regex){
             return preg_match($regex, $item->getName());
         });
     }
@@ -299,7 +299,7 @@ class Directory extends \Nette\Object implements Item, \Iterator, \ArrayAccess, 
      */
     public function getDirtree(){
 
-        return $this->dirs->setFlag(self::SUB);
+        return $this->getDirs()->setFlag(self::SUB);
     }
 
 
@@ -320,7 +320,44 @@ class Directory extends \Nette\Object implements Item, \Iterator, \ArrayAccess, 
      */
     public function getFiletree(){
 
-        return $this->files->setFlag(self::SUB);
+        return $this->getFiles()->setFlag(self::SUB);
+    }
+
+
+
+    public function tree($regex){
+
+        return $this->getTree()->setFilter(function(Item $item) use($regex){
+            return preg_match($regex, $item->getName());
+        });
+    }
+
+
+
+    public function dirtree($regex){
+
+        return $this->getDirtree()->setFilter(function(Item $item) use($regex){
+            return preg_match($regex, $item->getName());
+        });
+    }
+
+
+
+    /**
+     * self::dirtree() alias.
+     */
+    public function subdirs($regex){
+
+        return $this->dirtree($regex);
+    }
+
+
+
+    public function filetree($regex){
+
+        return $this->getFiletree()->setFilter(function(Item $item) use($regex){
+            return preg_match($regex, $item->getName());
+        });
     }
 
 
