@@ -9,3 +9,5 @@ Assert::equal('binfile.bin', $file->name);
 Assert::false($file->dir);
 Assert::equal(realpath(__DIR__.'/filesystem/firstDir/binfile.bin'), $file->path);
 Assert::type('Filesystem\Directory', $file->parent);
+Assert::equal(2, count($file->parent));
+Assert::equal(realpath(__DIR__.'/filesystem/firstDir/binfile.bin'), (string) $file);

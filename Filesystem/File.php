@@ -29,6 +29,13 @@ class File extends \Nette\Object implements Item {
 
 
 
+    public function __toString(){
+
+        return $this->getPath();
+    }
+
+
+
     public function isDir(){
 
         return FALSE;

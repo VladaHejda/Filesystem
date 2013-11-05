@@ -15,7 +15,6 @@ Assert::true(isset($dir->firstDir));
 Assert::true(isset($dir['firstDir']));
 Assert::true(isset($dir[0]));
 
-
 $dir = new \Filesystem\Directory(__DIR__.'/filesystem/firstDir');
 
 Assert::true($dir->exists('binfile.bin'));

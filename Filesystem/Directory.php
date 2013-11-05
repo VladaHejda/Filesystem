@@ -9,8 +9,8 @@ namespace Filesystem;
  * @property-read string $path
  * @property-read Directory|null $parent
  * @property-read bool $dir
- * @property-read DirectoryDirectories $dirs
- * @property-read DirectoryFiles $files
+ * @property-read Directory $dirs
+ * @property-read Directory $files
  */
 class Directory extends \Nette\Object implements Item, \Iterator, \ArrayAccess, \Countable {
 
@@ -53,6 +53,13 @@ class Directory extends \Nette\Object implements Item, \Iterator, \ArrayAccess, 
         if (!is_dir($this->root)){
             throw new FilesystemException(__CLASS__.": $directory is not directory.");
         }
+    }
+
+
+
+    public function __toString(){
+
+        return $this->getPath();
     }
 
 
@@ -179,22 +186,28 @@ class Directory extends \Nette\Object implements Item, \Iterator, \ArrayAccess, 
 
     /**
      * Lists only subdirectories, excludes files.
-     * @return DirectoryDirectories
+     * @return Directory
      */
     public function getDirs(){
 
-        return new DirectoryDirectories($this->root);
+        $dir = new static($this->root);
+        return $dir->setFilter(function(Item $item){
+            return $item->isDir();
+        });
     }
 
 
 
     /**
      * Lists only files, excludes directories.
-     * @return DirectoryFiles
+     * @return Directory
      */
     public function getFiles(){
 
-        return new DirectoryFiles($this->root);
+        $dir = new static($this->root);
+        return $dir->setFilter(function(Item $item){
+            return !$item->isDir();
+        });
     }
 
 
@@ -215,12 +228,11 @@ class Directory extends \Nette\Object implements Item, \Iterator, \ArrayAccess, 
     /**
      * Lists directories matching given regex.
      * @param string $regex
-     * @return DirectoryDirectories
+     * @return Directory
      */
     public function dirs($regex){
 
-        $dir = new DirectoryDirectories($this->root);
-        return $dir->setFilter(function(Item $item) use($regex){
+        return $this->dirs->setFilter(function(Item $item) use($regex){
             return preg_match($regex, $item->getName());
         });
     }
@@ -230,12 +242,11 @@ class Directory extends \Nette\Object implements Item, \Iterator, \ArrayAccess, 
     /**
      * Lists files matching given regex.
      * @param string $regex
-     * @return DirectoryFiles
+     * @return Directory
      */
     public function files($regex){
 
-        $dir = new DirectoryFiles($this->root);
-        return $dir->setFilter(function(Item $item) use($regex){
+        return $this->files->setFilter(function(Item $item) use($regex){
             return preg_match($regex, $item->getName());
         });
     }
