@@ -362,6 +362,20 @@ class Directory extends \Nette\Object implements Item, \Iterator, \ArrayAccess, 
 
 
 
+    public function filetypes($type){
+
+        return $this->files("/\.$type/");
+    }
+
+
+
+    public function filetypesTree($type){
+
+        return $this->filetree("/\.$type/");
+    }
+
+
+
     public function getName(){
 
         return basename($this->root);
