@@ -26,6 +26,11 @@ class Directory extends \Nette\Object implements Item, \Iterator, \ArrayAccess, 
 
 
 
+    /** @var callback[] */
+    private $filter = array();
+
+
+
     /** @var array */
     private $localCache;
 
@@ -216,6 +221,37 @@ class Directory extends \Nette\Object implements Item, \Iterator, \ArrayAccess, 
     }
 
 
+
+    /**
+     * Filters items. Has effect only for iterating and offsets.
+     * Callback gets Item. Return bool whether accept item or not.
+     * @param callback $callback
+     * @return Directory
+     * @throws FilesystemException on invalid callback
+     */
+    public function setFilter($callback){
+
+        if (!is_callable($callback)){
+            throw new FilesystemException(__CLASS__.": filter must be callable.");
+        }
+        $this->filter[] = $callback;
+        $this->localCache = NULL;
+
+        return $this;
+    }
+
+
+
+    public function invalidFilters(){
+
+        if ($this->filter){
+            $this->filter = array();
+            $this->localCache = NULL;
+        }
+    }
+
+
+
     /**
      * @todo
      */
@@ -283,9 +319,22 @@ class Directory extends \Nette\Object implements Item, \Iterator, \ArrayAccess, 
     private function filterItems($items){
 
         foreach ($items as $i => $item){
-            if ($this->denyItem($item)) unset($items[$i]);
+            if ($this->denyItem($item) || !$this->userFiltersAccepts($item)) unset($items[$i]);
         }
         return array_values($items);
+    }
+
+
+
+    private function userFiltersAccepts($item){
+
+        if ($this->filter){
+            $item = "$this->root/$item";
+            foreach ($this->filter as $filter){
+                if (!$filter(is_dir($item) ? new static($item) : new File($item))) return FALSE;
+            }
+        }
+        return TRUE;
     }
 
 
