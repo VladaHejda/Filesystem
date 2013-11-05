@@ -116,11 +116,12 @@ class Directory extends \Nette\Object implements Item, \Iterator, \ArrayAccess, 
      */
     public function get($item){
 
-        $item = realpath("$this->root/$item");
-        if (!$item){
+        $item = "$this->root/$item";
+        $_item = realpath($item);
+        if (!$_item){
             throw new FilesystemException(__CLASS__.": Absent file or directory $item.");
         }
-        return is_dir($item) ? new static($item) : new File($item);
+        return is_dir($_item) ? new static($_item) : new File($_item);
     }
 
 
