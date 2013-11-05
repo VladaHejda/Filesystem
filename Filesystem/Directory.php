@@ -10,6 +10,7 @@ namespace Filesystem;
  * @property-read Directory|null $parent
  * @property-read bool $dir
  * @property-read DirectoryDirectories $dirs
+ * @property-read DirectoryFiles $files
  */
 class Directory extends \Nette\Object implements Item, \Iterator, \ArrayAccess, \Countable {
 
@@ -159,12 +160,36 @@ class Directory extends \Nette\Object implements Item, \Iterator, \ArrayAccess, 
 
 
     /**
+     * Returns file.
+     * @param string $file file
+     * @return File
+     * @throws FilesystemException
+     */
+    public function file($file){
+
+        return new File("$this->root/$file");
+    }
+
+
+
+    /**
      * Lists only subdirectories, excludes files.
      * @return DirectoryDirectories
      */
     public function getDirs(){
 
         return new DirectoryDirectories($this->root);
+    }
+
+
+
+    /**
+     * Lists only files, excludes directories.
+     * @return DirectoryFiles
+     */
+    public function getFiles(){
+
+        return new DirectoryFiles($this->root);
     }
 
 
