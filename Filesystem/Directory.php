@@ -11,13 +11,26 @@ namespace Filesystem;
  * @property-read bool $dir
  * @property-read Directory $dirs
  * @property-read Directory $files
+ * @property-read Directory $tree
+ * @property-read Directory $dirtree
+ * @property-read Directory $filetree
+ * @property-read Directory $subdirs
  */
 class Directory extends \Nette\Object implements Item, \Iterator, \ArrayAccess, \Countable {
 
 
 
+    const SUB = 1;
+
+
+
     /** @var string root directory */
     protected $root;
+
+
+
+    /** @var int */
+    protected $flags;
 
 
 
@@ -43,9 +56,10 @@ class Directory extends \Nette\Object implements Item, \Iterator, \ArrayAccess, 
 
     /**
      * @param string $directory path to directory
+     * @param int $flags
      * @throws FilesystemException on absent directory
      */
-    public function __construct($directory){
+    public function __construct($directory, $flags = 0){
 
         if (!$this->root = realpath($directory)){
             throw new FilesystemException(__CLASS__.": Absent directory $directory.");
@@ -53,6 +67,20 @@ class Directory extends \Nette\Object implements Item, \Iterator, \ArrayAccess, 
         if (!is_dir($this->root)){
             throw new FilesystemException(__CLASS__.": $directory is not directory.");
         }
+        $this->flags = $flags;
+    }
+
+
+
+    /**
+     * @param int $flag
+     * @return Directory
+     */
+    public function setFlag($flag){
+
+        $this->flags |= $flag;
+        $this->localCache = NULL;
+        return $this;
     }
 
 
@@ -186,7 +214,7 @@ class Directory extends \Nette\Object implements Item, \Iterator, \ArrayAccess, 
 
 
     /**
-     * Lists only subdirectories, excludes files.
+     * Lists only directories, excludes files.
      * @return Directory
      */
     public function getDirs(){
@@ -250,6 +278,49 @@ class Directory extends \Nette\Object implements Item, \Iterator, \ArrayAccess, 
         return $this->files->setFilter(function(Item $item) use($regex){
             return preg_match($regex, $item->getName());
         });
+    }
+
+
+
+    /**
+     * Lists all items in all subdirectories.
+     * @return Directory
+     */
+    public function getTree(){
+
+        return new static($this->root, self::SUB);
+    }
+
+
+
+    /**
+     * Lists all subdirectories.
+     * @return Directory
+     */
+    public function getDirtree(){
+
+        return $this->dirs->setFlag(self::SUB);
+    }
+
+
+
+    /**
+     * self::dirtree() alias.
+     */
+    public function getSubdirs(){
+
+        return $this->getDirtree();
+    }
+
+
+
+    /**
+     * Lists all files in all subdirectories.
+     * @return Directory
+     */
+    public function getFiletree(){
+
+        return $this->files->setFlag(self::SUB);
     }
 
 
@@ -359,29 +430,17 @@ class Directory extends \Nette\Object implements Item, \Iterator, \ArrayAccess, 
 
 
 
-    /**
-     * Filter items.
-     * @param string $item
-     * @return bool
-     */
-    protected function denyItem($item){
-
-        return FALSE;
-    }
-
-
-
     private function filterItems($items){
 
         foreach ($items as $i => $item){
-            if ($this->denyItem($item) || !$this->userFiltersAccepts($item)) unset($items[$i]);
+            if (!$this->filtersAccepts($item)) unset($items[$i]);
         }
         return array_values($items);
     }
 
 
 
-    private function userFiltersAccepts($item){
+    private function filtersAccepts($item){
 
         if ($this->filter){
             $item = "$this->root/$item";
@@ -397,16 +456,28 @@ class Directory extends \Nette\Object implements Item, \Iterator, \ArrayAccess, 
     private function getItems(){
 
         if (isset($this->localCache)) return $this->localCache;
+        if (!isset(self::$cache[$this->root])) self::$cache[$this->root] = array();
+        $subdirs = (bool) $this->flags & self::SUB;
+        $cacheType = $subdirs ? self::SUB : 0;
 
-        if (!isset(self::$cache[$this->root])){
-            $items = array();
-            $h = opendir($this->root);
-            while ($f = readdir($h)){
-                if ($f == '.' || $f == '..') continue;
-                $items[] = $f;
-            }
-            self::$cache[$this->root] = $items;
+        if (!isset(self::$cache[$this->root][$cacheType])){
+            $readdir = function($basedir, $dir, $sub = FALSE) use(&$readdir){
+                $items = array();
+                $h = opendir("$basedir/$dir");
+                while ($f = readdir($h)){
+                    if ($f == '.' || $f == '..') continue;
+                    $items[] = ($dir ? "$dir/" : '') . $f;
+                    if ($sub && is_dir("$basedir/$dir/$f")){
+                        $items = array_merge($items, $readdir($basedir, "$dir/$f", $sub));
+                    }
+                }
+                closedir($h);
+                return $items;
+            };
+            $items = $readdir($this->root, '', $subdirs);
+            self::$cache[$this->root][$cacheType] = $items;
         }
-        return $this->localCache = $this->filterItems(self::$cache[$this->root]);
+
+        return $this->localCache = $this->filterItems(self::$cache[$this->root][$cacheType]);
     }
 }
